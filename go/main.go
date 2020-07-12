@@ -348,44 +348,133 @@ func main() {
 	InitializeCache()
 
 	mux := goji.NewMux()
-	mux.Handle(pat.Get("/metrics"), &ochttp.Handler{
-		// Use the Google Cloud propagation format.
-		Propagation: &propagation.HTTPFormat{},
-	})
 
 	// API
-	mux.HandleFunc(pat.Post("/initialize"), postInitialize)
-	mux.HandleFunc(pat.Get("/new_items.json"), getNewItems)
-	mux.HandleFunc(pat.Get("/new_items/:root_category_id.json"), getNewCategoryItems)
-	mux.HandleFunc(pat.Get("/users/transactions.json"), getTransactions)
-	mux.HandleFunc(pat.Get("/users/:user_id.json"), getUserItems)
-	mux.HandleFunc(pat.Get("/items/:item_id.json"), getItem)
-	mux.HandleFunc(pat.Post("/items/edit"), postItemEdit)
-	mux.HandleFunc(pat.Post("/buy"), postBuy)
-	mux.HandleFunc(pat.Post("/sell"), postSell)
-	mux.HandleFunc(pat.Post("/ship"), postShip)
-	mux.HandleFunc(pat.Post("/ship_done"), postShipDone)
-	mux.HandleFunc(pat.Post("/complete"), postComplete)
-	mux.HandleFunc(pat.Get("/transactions/:transaction_evidence_id.png"), getQRCode)
-	mux.HandleFunc(pat.Post("/bump"), postBump)
-	mux.HandleFunc(pat.Get("/settings"), getSettings)
-	mux.HandleFunc(pat.Post("/login"), postLogin)
-	mux.HandleFunc(pat.Post("/register"), postRegister)
-	mux.HandleFunc(pat.Get("/reports.json"), getReports)
+	mux.Handle(pat.Post("/initialize"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postInitialize),
+	})
+	mux.Handle(pat.Get("/new_items.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getNewItems),
+	})
+	mux.Handle(pat.Get("/new_items/:root_category_id.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getNewCategoryItems),
+	})
+	mux.Handle(pat.Get("/users/transactions.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getTransactions),
+	})
+	mux.Handle(pat.Get("/users/:user_id.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getUserItems),
+	})
+	mux.Handle(pat.Get("/items/:item_id.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getItem),
+	})
+	mux.Handle(pat.Post("/items/edit"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postItemEdit),
+	})
+	mux.Handle(pat.Post("/buy"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postBuy),
+	})
+	mux.Handle(pat.Post("/sell"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postSell),
+	})
+	mux.Handle(pat.Post("/ship"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postShip),
+	})
+	mux.Handle(pat.Post("/ship_done"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postShipDone),
+	})
+	mux.Handle(pat.Post("/complete"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postComplete),
+	})
+	mux.Handle(pat.Get("/transactions/:transaction_evidence_id.png"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getQRCode),
+	})
+	mux.Handle(pat.Post("/bump"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postBump),
+	})
+	mux.Handle(pat.Get("/settings"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getSettings),
+	})
+	mux.Handle(pat.Post("/login"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postLogin),
+	})
+	mux.Handle(pat.Post("/register"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(postRegister),
+	})
+	mux.Handle(pat.Get("/reports.json"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getReports),
+	})
 	// Frontend
-	mux.HandleFunc(pat.Get("/"), getIndex)
-	mux.HandleFunc(pat.Get("/login"), getIndex)
-	mux.HandleFunc(pat.Get("/register"), getIndex)
-	mux.HandleFunc(pat.Get("/timeline"), getIndex)
-	mux.HandleFunc(pat.Get("/categories/:category_id/items"), getIndex)
-	mux.HandleFunc(pat.Get("/sell"), getIndex)
-	mux.HandleFunc(pat.Get("/items/:item_id"), getIndex)
-	mux.HandleFunc(pat.Get("/items/:item_id/edit"), getIndex)
-	mux.HandleFunc(pat.Get("/items/:item_id/buy"), getIndex)
-	mux.HandleFunc(pat.Get("/buy/complete"), getIndex)
-	mux.HandleFunc(pat.Get("/transactions/:transaction_id"), getIndex)
-	mux.HandleFunc(pat.Get("/users/:user_id"), getIndex)
-	mux.HandleFunc(pat.Get("/users/setting"), getIndex)
+	mux.Handle(pat.Get("/"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/login"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/register"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/timeline"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/categories/:category_id/items"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/sell"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/items/:item_id"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/items/:item_id/edit"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/items/:item_id/buy"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/buy/complete"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/transactions/:transaction_id"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/users/:user_id"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
+	mux.Handle(pat.Get("/users/setting"), &ochttp.Handler{
+		Propagation: &propagation.HTTPFormat{},
+		Handler:     http.HandlerFunc(getIndex),
+	})
 	// Assets
 	//mux.Handle(pat.Get("/*"), http.FileServer(http.Dir("../public")))
 	log.Fatal(http.ListenAndServe(":8000", mux))
