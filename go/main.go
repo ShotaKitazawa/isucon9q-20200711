@@ -17,9 +17,11 @@ import (
 	"time"
 
 	"contrib.go.opencensus.io/exporter/stackdriver"
+	"contrib.go.opencensus.io/exporter/stackdriver/propagation"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/trace"
 	goji "goji.io"
 	"goji.io/pat"
@@ -346,6 +348,10 @@ func main() {
 	InitializeCache()
 
 	mux := goji.NewMux()
+	mux.Handle(pat.Get("/metrics"), &ochttp.Handler{
+		// Use the Google Cloud propagation format.
+		Propagation: &propagation.HTTPFormat{},
+	})
 
 	// API
 	mux.HandleFunc(pat.Post("/initialize"), postInitialize)
