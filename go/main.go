@@ -689,7 +689,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	if itemID > 0 && createdAt > 0 {
 		// paging
 		inQuery, inArgs, err = sqlx.In(
-			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", c.id AS "c.id", c.parent_id AS "c.parent_id", c.category_name AS "c.category_name", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
+			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
 			FROM items i
 			JOIN users u ON i.seller_id = u.id
 			WHERE i.status IN (?,?)
@@ -712,7 +712,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 1st page
 		inQuery, inArgs, err = sqlx.In(
-			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", c.id AS "c.id", c.parent_id AS "c.parent_id", c.category_name AS "c.category_name", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
+			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
 			FROM items i
 			JOIN users u ON i.seller_id = u.id
 			WHERE i.status IN (?,?)
