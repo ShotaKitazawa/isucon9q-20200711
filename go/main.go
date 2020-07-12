@@ -343,17 +343,18 @@ func main() {
 	}
 	fmt.Println("success: Cloud Trace initializing")
 	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	//trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	InitializeCache()
 
 	mux := goji.NewMux()
 
 	// API
-	mux.Handle(pat.Post("/initialize"), &ochttp.Handler{
-		Propagation: &propagation.HTTPFormat{},
-		Handler:     http.HandlerFunc(postInitialize),
-	})
+	mux.HandleFunc(pat.Post("/initialize"), postInitialize)
+	//mux.Handle(pat.Post("/initialize"), &ochttp.Handler{
+	//	Propagation: &propagation.HTTPFormat{},
+	//	Handler:     http.HandlerFunc(postInitialize),
+	//})
 	mux.Handle(pat.Get("/new_items.json"), &ochttp.Handler{
 		Propagation: &propagation.HTTPFormat{},
 		Handler:     http.HandlerFunc(getNewItems),
@@ -427,10 +428,11 @@ func main() {
 		Propagation: &propagation.HTTPFormat{},
 		Handler:     http.HandlerFunc(getIndex),
 	})
-	mux.Handle(pat.Get("/login"), &ochttp.Handler{
-		Propagation: &propagation.HTTPFormat{},
-		Handler:     http.HandlerFunc(getIndex),
-	})
+	mux.HandleFunc(pat.Get("/login"), getIndex)
+	//mux.Handle(pat.Get("/login"), &ochttp.Handler{
+	//	Propagation: &propagation.HTTPFormat{},
+	//	Handler:     http.HandlerFunc(getIndex),
+	//})
 	mux.Handle(pat.Get("/register"), &ochttp.Handler{
 		Propagation: &propagation.HTTPFormat{},
 		Handler:     http.HandlerFunc(getIndex),
