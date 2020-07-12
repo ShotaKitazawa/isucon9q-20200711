@@ -14,6 +14,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -1431,52 +1432,63 @@ func postBuy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	scr, err := APIShipmentCreate(getShipmentServiceURL(), &APIShipmentCreateReq{
-		ToAddress:   buyer.Address,
-		ToName:      buyer.AccountName,
-		FromAddress: seller.Address,
-		FromName:    seller.AccountName,
-	})
-	if err != nil {
-		log.Print(err)
-		outputErrorMsg(w, http.StatusInternalServerError, "failed to request to shipment service")
-		tx.Rollback()
+	var scr *APIShipmentCreateRes
+	var pstr *APIPaymentServiceTokenRes
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-		return
-	}
+	go func() {
+		defer wg.Done()
+		var err error
+		scr, err = APIShipmentCreate(getShipmentServiceURL(), &APIShipmentCreateReq{
+			ToAddress:   buyer.Address,
+			ToName:      buyer.AccountName,
+			FromAddress: seller.Address,
+			FromName:    seller.AccountName,
+		})
+		if err != nil {
+			log.Print(err)
+			outputErrorMsg(w, http.StatusInternalServerError, "failed to request to shipment service")
+			tx.Rollback()
+			return
+		}
+	}()
 
-	pstr, err := APIPaymentToken(getPaymentServiceURL(), &APIPaymentServiceTokenReq{
-		ShopID: PaymentServiceIsucariShopID,
-		Token:  rb.Token,
-		APIKey: PaymentServiceIsucariAPIKey,
-		Price:  targetItem.Price,
-	})
-	if err != nil {
-		log.Print(err)
+	go func() {
+		defer wg.Done()
+		pstr, err = APIPaymentToken(getPaymentServiceURL(), &APIPaymentServiceTokenReq{
+			ShopID: PaymentServiceIsucariShopID,
+			Token:  rb.Token,
+			APIKey: PaymentServiceIsucariAPIKey,
+			Price:  targetItem.Price,
+		})
+		if err != nil {
+			log.Print(err)
+			outputErrorMsg(w, http.StatusInternalServerError, "payment service is failed")
+			tx.Rollback()
+			return
+		}
 
-		outputErrorMsg(w, http.StatusInternalServerError, "payment service is failed")
-		tx.Rollback()
-		return
-	}
+		if pstr.Status == "invalid" {
+			outputErrorMsg(w, http.StatusBadRequest, "カード情報に誤りがあります")
+			tx.Rollback()
+			return
+		}
 
-	if pstr.Status == "invalid" {
-		outputErrorMsg(w, http.StatusBadRequest, "カード情報に誤りがあります")
-		tx.Rollback()
-		return
-	}
+		if pstr.Status == "fail" {
+			outputErrorMsg(w, http.StatusBadRequest, "カードの残高が足りません")
+			tx.Rollback()
+			return
+		}
 
-	if pstr.Status == "fail" {
-		outputErrorMsg(w, http.StatusBadRequest, "カードの残高が足りません")
-		tx.Rollback()
-		return
-	}
+		if pstr.Status != "ok" {
+			outputErrorMsg(w, http.StatusBadRequest, "想定外のエラー")
+			tx.Rollback()
+			return
+		}
+	}()
 
-	if pstr.Status != "ok" {
-		outputErrorMsg(w, http.StatusBadRequest, "想定外のエラー")
-		tx.Rollback()
-		return
-	}
-
+	wg.Wait()
 	_, err = tx.Exec("INSERT INTO `shippings` (`transaction_evidence_id`, `status`, `item_name`, `item_id`, `reserve_id`, `reserve_time`, `to_address`, `to_name`, `from_address`, `from_name`, `img_binary`) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
 		transactionEvidenceID,
 		ShippingsStatusInitial,
