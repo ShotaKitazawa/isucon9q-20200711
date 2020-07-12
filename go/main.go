@@ -519,19 +519,17 @@ func postInitialize(w http.ResponseWriter, r *http.Request) {
 
 func InitializeCache() {
 	cacheCategoryByID = make(map[int]Category, 100)
-	var categoryIDs []struct {
-		id int64 `db:"id"`
-	}
-	err := sqlx.Select(dbx, &categoryIDs, "SELECT id AS id FROM `categories`")
+	categories := []Category{}
+	err := sqlx.Select(dbx, &categories, "SELECT * FROM `categories`")
 	if err != nil {
 		panic(err)
 	}
-	for _, categoryID := range categoryIDs {
-		category, err := getCategoryByIDFromDB(dbx, int(categoryID.id))
+	for _, category:= range categories {
+		category, err := getCategoryByIDFromDB(dbx, category.ID)
 		if err != nil {
 			panic(err)
 		}
-		cacheCategoryByID[int(categoryID.id)] = category
+		cacheCategoryByID[category.ID] = category
 	}
 }
 
