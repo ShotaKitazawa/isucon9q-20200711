@@ -945,7 +945,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	if itemID > 0 && createdAt > 0 {
 		// paging
 		err := tx.Select(&itemAndTransactions,
-			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.buyer_id AS "i.buyer_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.description AS "i.description", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", i.updated_at AS "i.updated_at", t.id AS "t.id", t.status AS "t.status"
+			`SELECT i.id AS i.id, i.seller_id AS i.seller_id, i.buyer_id AS i.buyer_id, i.status AS i.status, i.name AS i.name, i.price AS i.price, i.description AS i.description, i.image_name AS i.image_name, i.category_id AS i.category_id, i.created_at AS i.created_at, i.updated_at AS i.updated_at, t.id AS t.id, t.status AS t.status
 			FROM items AS i JOIN transaction_evidences AS t ON i.id = t.item_id WHERE (i.seller_id = ? OR i.buyer_id = ?) AND (i.created_at < ?  OR (i.created_at <= ? AND i.id < ?)) ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
 			user.ID,
 			user.ID,
@@ -963,7 +963,7 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// 1st page
 		err := tx.Select(&itemAndTransactions,
-			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.buyer_id AS "i.buyer_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.description AS "i.description", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", i.updated_at AS "i.updated_at", t.id AS "t.id", t.status AS "t.status"
+			`SELECT i.id AS i.id, i.seller_id AS i.seller_id, i.buyer_id AS i.buyer_id, i.status AS i.status, i.name AS i.name, i.price AS i.price, i.description AS i.description, i.image_name AS i.image_name, i.category_id AS i.category_id, i.created_at AS i.created_at, i.updated_at AS i.updated_at, t.id AS t.id, t.status AS t.status
 			FROM items AS i JOIN transaction_evidences AS t ON i.id = t.item_id WHERE (i.seller_id = ? OR i.buyer_id = ?) ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
 			user.ID,
 			user.ID,
