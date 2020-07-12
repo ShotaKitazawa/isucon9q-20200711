@@ -2206,6 +2206,7 @@ func getSettings(w http.ResponseWriter, r *http.Request) {
 
 	ress.PaymentServiceURL = getPaymentServiceURL()
 
+	// TODO: cache から引く
 	categories := []Category{}
 
 	err := dbx.Select(&categories, "SELECT * FROM `categories`")
