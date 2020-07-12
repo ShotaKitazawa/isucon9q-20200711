@@ -2379,6 +2379,7 @@ func StartTrace() {
 		fmt.Printf("warning: Cloud Trace initializing error: %v\n", err)
 		return
 	}
+	fmt.Println("success: Cloud Trace initializing")
 	trace.RegisterExporter(exporter)
 	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 }
