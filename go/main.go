@@ -16,9 +16,11 @@ import (
 	"strconv"
 	"time"
 
+	"contrib.go.opencensus.io/exporter/stackdriver"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/sessions"
 	"github.com/jmoiron/sqlx"
+	"go.opencensus.io/trace"
 	goji "goji.io"
 	"goji.io/pat"
 	"golang.org/x/crypto/bcrypt"
@@ -285,6 +287,7 @@ func init() {
 	templates = template.Must(template.ParseFiles(
 		"../public/index.html",
 	))
+	StartTrace()
 }
 
 func main() {
@@ -2365,4 +2368,17 @@ func outputErrorMsg(w http.ResponseWriter, status int, msg string) {
 
 func getImageURL(imageName string) string {
 	return fmt.Sprintf("/upload/%s", imageName)
+}
+
+func StartTrace() {
+	// Create and register a OpenCensus Stackdriver Trace exporter.
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
+	})
+	if err != nil {
+		fmt.Printf("warning: Cloud Trace initializing error: %v\n", err)
+		return
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 }
