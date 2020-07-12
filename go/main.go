@@ -524,7 +524,7 @@ func InitializeCache() {
 	if err != nil {
 		panic(err)
 	}
-	for _, category:= range categories {
+	for _, category := range categories {
 		category, err := getCategoryByIDFromDB(dbx, category.ID)
 		if err != nil {
 			panic(err)
@@ -692,7 +692,6 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", c.id AS "c.id", c.parent_id AS "c.parent_id", c.category_name AS "c.category_name", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
 			FROM items i
 			JOIN users u ON i.seller_id = u.id
-			JOIN categories c ON i.category_id = c.id
 			WHERE i.status IN (?,?)
 			AND i.category_id IN (?)
 			AND (i.created_at < ?  OR (i.created_at <= ? AND i.id < ?))
@@ -716,7 +715,6 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			`SELECT i.id AS "i.id", i.seller_id AS "i.seller_id", i.status AS "i.status", i.name AS "i.name", i.price AS "i.price", i.image_name AS "i.image_name", i.category_id AS "i.category_id", i.created_at AS "i.created_at", c.id AS "c.id", c.parent_id AS "c.parent_id", c.category_name AS "c.category_name", u.id AS "u.id", u.account_name AS "u.account_name", u.num_sell_items AS "u.num_sell_items"
 			FROM items i
 			JOIN users u ON i.seller_id = u.id
-			JOIN categories c ON i.category_id = c.id
 			WHERE i.status IN (?,?)
 			AND i.category_id IN (?)
 			ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
@@ -743,6 +741,12 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 
 	itemSimples := []ItemSimple{}
 	for _, item := range items {
+		category, err := getCategoryByID(item.Item.CategoryID)
+		if err != nil {
+			log.Print(err)
+			outputErrorMsg(w, http.StatusInternalServerError, "db error")
+			return
+		}
 		itemSimple := ItemSimple{
 			ID:         item.Item.ID,
 			SellerID:   item.Item.SellerID,
@@ -752,7 +756,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			Price:      item.Item.Price,
 			ImageURL:   getImageURL(item.Item.ImageName),
 			CategoryID: item.Item.CategoryID,
-			Category:   item.Category,
+			Category:   &category,
 			CreatedAt:  item.Item.CreatedAt.Unix(),
 		}
 		parentCategory, err := getCategoryByID(itemSimple.Category.ParentID)
