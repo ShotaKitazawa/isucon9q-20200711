@@ -343,7 +343,7 @@ func main() {
 	}
 	fmt.Println("success: Cloud Trace initializing")
 	trace.RegisterExporter(exporter)
-	//trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 
 	InitializeCache()
 
@@ -411,10 +411,11 @@ func main() {
 		Propagation: &propagation.HTTPFormat{},
 		Handler:     http.HandlerFunc(getSettings),
 	})
-	mux.Handle(pat.Post("/login"), &ochttp.Handler{
-		Propagation: &propagation.HTTPFormat{},
-		Handler:     http.HandlerFunc(postLogin),
-	})
+	mux.HandleFunc(pat.Post("/login"), postLogin)
+	// mux.Handle(pat.Post("/login"), &ochttp.Handler{
+	//	Propagation: &propagation.HTTPFormat{},
+	//	Handler:     http.HandlerFunc(postLogin),
+	// })
 	mux.Handle(pat.Post("/register"), &ochttp.Handler{
 		Propagation: &propagation.HTTPFormat{},
 		Handler:     http.HandlerFunc(postRegister),
