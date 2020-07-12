@@ -285,6 +285,8 @@ func init() {
 	templates = template.Must(template.ParseFiles(
 		"../public/index.html",
 	))
+
+	InitializeCache()
 }
 
 func main() {
