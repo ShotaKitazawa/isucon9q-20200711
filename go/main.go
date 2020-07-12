@@ -331,7 +331,18 @@ func main() {
 	}
 	defer dbx.Close()
 
-	StartTrace()
+	// Create and register a OpenCensus Stackdriver Trace exporter.
+	exporter, err := stackdriver.NewExporter(stackdriver.Options{
+		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
+	})
+	if err != nil {
+		fmt.Printf("warning: Cloud Trace initializing error: %v\n", err)
+		return
+	}
+	fmt.Println("success: Cloud Trace initializing")
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
+
 	InitializeCache()
 
 	mux := goji.NewMux()
@@ -2371,15 +2382,4 @@ func getImageURL(imageName string) string {
 }
 
 func StartTrace() {
-	// Create and register a OpenCensus Stackdriver Trace exporter.
-	exporter, err := stackdriver.NewExporter(stackdriver.Options{
-		ProjectID: os.Getenv("GOOGLE_CLOUD_PROJECT"),
-	})
-	if err != nil {
-		fmt.Printf("warning: Cloud Trace initializing error: %v\n", err)
-		return
-	}
-	fmt.Println("success: Cloud Trace initializing")
-	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{DefaultSampler: trace.AlwaysSample()})
 }
