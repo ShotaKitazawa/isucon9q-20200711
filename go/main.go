@@ -142,6 +142,11 @@ type ItemCategoryUser struct {
 	User     *UserSimple `db:"u"`
 }
 
+type ItemTransactionEvidence struct {
+	Item                *Item                `db:"i"`
+	TransactionEvidence *TransactionEvidence `db:"t"`
+}
+
 type TransactionEvidence struct {
 	ID                 int64     `json:"id" db:"id"`
 	SellerID           int64     `json:"seller_id" db:"seller_id"`
@@ -929,11 +934,12 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx := dbx.MustBegin()
-	items := []Item{}
+	itemAndTransactions := []ItemTransactionEvidence{}
 	if itemID > 0 && createdAt > 0 {
 		// paging
-		err := tx.Select(&items,
-			"SELECT * FROM `items` WHERE (`seller_id` = ? OR `buyer_id` = ?) AND (`created_at` < ?  OR (`created_at` <= ? AND `id` < ?)) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
+		err := tx.Select(&itemAndTransactions,
+			`SELECT *
+			FROM items AS i JOIN transaction_evidences AS t ON i.id = t.item_id WHERE (i.seller_id = ? OR i.buyer_id = ?) AND (i.created_at < ?  OR (i.created_at <= ? AND i.id < ?)) ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
 			user.ID,
 			user.ID,
 			time.Unix(createdAt, 0),
@@ -949,8 +955,9 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 1st page
-		err := tx.Select(&items,
-			"SELECT * FROM `items` WHERE (`seller_id` = ? OR `buyer_id` = ?) ORDER BY `created_at` DESC, `id` DESC LIMIT ?",
+		err := tx.Select(&itemAndTransactions,
+			`SELECT *
+			FROM items AS i JOIN transaction_evidences AS t ON i.id = t.item_id WHERE (i.seller_id = ? OR i.buyer_id = ?) ORDER BY i.created_at DESC, i.id DESC LIMIT ?`,
 			user.ID,
 			user.ID,
 			TransactionsPerPage+1,
@@ -964,14 +971,14 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 	itemDetails := []ItemDetail{}
-	for _, item := range items {
-		seller, err := getUserSimpleByID(tx, item.SellerID)
+	for _, itemAndTransaction := range itemAndTransactions {
+		seller, err := getUserSimpleByID(tx, itemAndTransaction.Item.SellerID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "seller not found")
 			tx.Rollback()
 			return
 		}
-		category, err := getCategoryByID(item.CategoryID)
+		category, err := getCategoryByID(itemAndTransaction.Item.CategoryID)
 		if err != nil {
 			outputErrorMsg(w, http.StatusNotFound, "category not found")
 			tx.Rollback()
@@ -979,48 +986,48 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 		}
 
 		itemDetail := ItemDetail{
-			ID:       item.ID,
-			SellerID: item.SellerID,
+			ID:       itemAndTransaction.Item.ID,
+			SellerID: itemAndTransaction.Item.SellerID,
 			Seller:   &seller,
 			// BuyerID
 			// Buyer
-			Status:      item.Status,
-			Name:        item.Name,
-			Price:       item.Price,
-			Description: item.Description,
-			ImageURL:    getImageURL(item.ImageName),
-			CategoryID:  item.CategoryID,
+			Status:      itemAndTransaction.Item.Status,
+			Name:        itemAndTransaction.Item.Name,
+			Price:       itemAndTransaction.Item.Price,
+			Description: itemAndTransaction.Item.Description,
+			ImageURL:    getImageURL(itemAndTransaction.Item.ImageName),
+			CategoryID:  itemAndTransaction.Item.CategoryID,
 			// TransactionEvidenceID
 			// TransactionEvidenceStatus
 			// ShippingStatus
 			Category:  &category,
-			CreatedAt: item.CreatedAt.Unix(),
+			CreatedAt: itemAndTransaction.Item.CreatedAt.Unix(),
 		}
 
-		if item.BuyerID != 0 {
-			buyer, err := getUserSimpleByID(tx, item.BuyerID)
+		if itemAndTransaction.Item.BuyerID != 0 {
+			buyer, err := getUserSimpleByID(tx, itemAndTransaction.Item.BuyerID)
 			if err != nil {
 				outputErrorMsg(w, http.StatusNotFound, "buyer not found")
 				tx.Rollback()
 				return
 			}
-			itemDetail.BuyerID = item.BuyerID
+			itemDetail.BuyerID = itemAndTransaction.Item.BuyerID
 			itemDetail.Buyer = &buyer
 		}
 
-		transactionEvidence := TransactionEvidence{}
-		err = tx.Get(&transactionEvidence, "SELECT * FROM `transaction_evidences` WHERE `item_id` = ?", item.ID)
-		if err != nil && err != sql.ErrNoRows {
-			// It's able to ignore ErrNoRows
-			log.Print(err)
-			outputErrorMsg(w, http.StatusInternalServerError, "db error")
-			tx.Rollback()
-			return
-		}
+		//transactionEvidence := TransactionEvidence{}
+		//err = tx.Get(&transactionEvidence, "SELECT * FROM `transaction_evidences` WHERE `item_id` = ?", item.ID)
+		//if err != nil && err != sql.ErrNoRows {
+		//	// It's able to ignore ErrNoRows
+		//	log.Print(err)
+		//	outputErrorMsg(w, http.StatusInternalServerError, "db error")
+		//	tx.Rollback()
+		//	return
+		//}
 
-		if transactionEvidence.ID > 0 {
+		if itemAndTransaction.TransactionEvidence.ID > 0 {
 			shipping := Shipping{}
-			err = tx.Get(&shipping, "SELECT * FROM `shippings` WHERE `transaction_evidence_id` = ?", transactionEvidence.ID)
+			err = tx.Get(&shipping, "SELECT * FROM `shippings` WHERE `transaction_evidence_id` = ?", itemAndTransaction.TransactionEvidence.ID)
 			if err == sql.ErrNoRows {
 				outputErrorMsg(w, http.StatusNotFound, "shipping not found")
 				tx.Rollback()
@@ -1042,8 +1049,8 @@ func getTransactions(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			itemDetail.TransactionEvidenceID = transactionEvidence.ID
-			itemDetail.TransactionEvidenceStatus = transactionEvidence.Status
+			itemDetail.TransactionEvidenceID = itemAndTransaction.TransactionEvidence.ID
+			itemDetail.TransactionEvidenceStatus = itemAndTransaction.TransactionEvidence.Status
 			itemDetail.ShippingStatus = ssr.Status
 		}
 
