@@ -134,9 +134,9 @@ type ItemDetail struct {
 }
 
 type ItemCategoryUser struct {
-	Item     Item       `db:"i"`
-	Category Category   `db:"c"`
-	User     UserSimple `db:"u"`
+	Item     *Item       `db:"i"`
+	Category *Category   `db:"c"`
+	User     *UserSimple `db:"u"`
 }
 
 type TransactionEvidence struct {
@@ -711,13 +711,13 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 		itemSimple := ItemSimple{
 			ID:         item.Item.ID,
 			SellerID:   item.Item.SellerID,
-			Seller:     &item.User,
+			Seller:     item.User,
 			Status:     item.Item.Status,
 			Name:       item.Item.Name,
 			Price:      item.Item.Price,
 			ImageURL:   getImageURL(item.Item.ImageName),
 			CategoryID: item.Item.CategoryID,
-			Category:   &item.Category,
+			Category:   item.Category,
 			CreatedAt:  item.Item.CreatedAt.Unix(),
 		}
 		parentCategory, err := getCategoryByID(dbx, itemSimple.Category.ParentID)
