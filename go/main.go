@@ -286,11 +286,6 @@ func init() {
 		"../public/index.html",
 	))
 
-	InitializeCache()
-}
-
-func main() {
-	go http.ListenAndServe(":3000", nil)
 	host := os.Getenv("MYSQL_HOST")
 	if host == "" {
 		host = "127.0.0.1"
@@ -329,6 +324,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to DB: %s.", err.Error())
 	}
+
+	InitializeCache()
+}
+
+func main() {
+	go http.ListenAndServe(":3000", nil)
 	defer dbx.Close()
 
 	mux := goji.NewMux()
