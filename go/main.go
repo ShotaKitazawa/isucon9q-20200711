@@ -287,7 +287,6 @@ func init() {
 	templates = template.Must(template.ParseFiles(
 		"../public/index.html",
 	))
-	StartTrace()
 }
 
 func main() {
@@ -332,6 +331,7 @@ func main() {
 	}
 	defer dbx.Close()
 
+	StartTrace()
 	InitializeCache()
 
 	mux := goji.NewMux()
