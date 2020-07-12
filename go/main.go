@@ -407,7 +407,7 @@ func getUser(r *http.Request) (user User, errCode int, errMsg string) {
 
 func getUserSimpleByID(q sqlx.Queryer, userID int64) (userSimple UserSimple, err error) {
 	user := User{}
-	err = sqlx.Select(q, &user, "SELECT * FROM `users` WHERE `id` = ?", userID)
+	err = sqlx.Get(q, &user, "SELECT * FROM `users` WHERE `id` = ?", userID)
 	if err != nil {
 		return userSimple, err
 	}
@@ -522,7 +522,7 @@ func InitializeCache() {
 	var categoryIDs []struct {
 		id int64 `db:"id"`
 	}
-	err := sqlx.Get(dbx, &categoryIDs, "SELECT id AS id FROM `categories`")
+	err := sqlx.Select(dbx, &categoryIDs, "SELECT id AS id FROM `categories`")
 	if err != nil {
 		panic(err)
 	}
