@@ -335,6 +335,13 @@ func main() {
 	}
 	defer dbx.Close()
 
+	waitDB(dbx)
+	go pollDB(dbx)
+
+	dbx.SetConnMaxLifetime(10 * time.Second)
+	dbx.SetMaxIdleConns(512)
+	dbx.SetMaxOpenConns(512)
+
 	InitializeCache()
 
 	mux := goji.NewMux()
