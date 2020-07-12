@@ -720,7 +720,7 @@ func getNewCategoryItems(w http.ResponseWriter, r *http.Request) {
 			Category:   &item.Category,
 			CreatedAt:  item.Item.CreatedAt.Unix(),
 		}
-		parentCategory, err := getCategoryByID(dbx, itemSimple.CategoryID)
+		parentCategory, err := getCategoryByID(dbx, itemSimple.Category.ParentID)
 		if err != nil {
 			log.Print(err)
 			outputErrorMsg(w, http.StatusInternalServerError, "db error")
